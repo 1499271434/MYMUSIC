@@ -1,5 +1,5 @@
 ﻿// 使用新的免费API
-const API_BASE_URL = 'https://netease-cloud-music-api-beta-lyart.vercel.app';
+const API_BASE_URL = 'https://www.nhyx.zone.id';
 
 const searchButton = document.getElementById('searchButton');
 const searchInput = document.getElementById('searchInput');
