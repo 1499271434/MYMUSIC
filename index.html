@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的音乐播放器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>免费音乐播放器</h1>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="输入歌曲或歌手名...">
+            <button id="searchButton">搜索</button>
+        </div>
+        <ul id="resultsList">
+        </ul>
+        <div class="player">
+            <p id="nowPlaying">请先选择一首歌曲</p>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

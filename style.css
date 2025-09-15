@@ -1,0 +1,71 @@
+/* 页面整体样式 */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+}
+.容器 {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+.搜索框 {
+    display: flex;
+    margin-bottom: 20px;
+}
+#搜索输入 {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+#搜索按钮 {
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+#搜索按钮:hover {
+    background-color: #0056b3;
+}
+#结果列表 {
+    list-style-type: none;
+    padding: 0;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+#结果列表 li {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#结果列表 li:hover {
+    background-color: #f1f1f1;
+}
+.播放器 {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+#音频播放器 {
+    width: 100%;
+    margin-top: 5px;
+}
