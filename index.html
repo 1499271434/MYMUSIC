@@ -1,25 +1,179 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的音乐播放器</title>
+    <title>高级音乐播放器</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>免费音乐播放器</h1>
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="输入歌曲或歌手名...">
-            <button id="searchButton">搜索</button>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-music"></i>
+                    <h1>音乐播放器</h1>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="搜索歌曲、歌手...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <div class="nav-item active" data-section="discover">
+                        <i class="fas fa-fire"></i>
+                        <span>发现音乐</span>
+                    </div>
+                    <div class="nav-item" data-section="playlist">
+                        <i class="fas fa-list"></i>
+                        <span>播放列表</span>
+                    </div>
+                    <div class="nav-item" data-section="lyrics">
+                        <i class="fas fa-quote-left"></i>
+                        <span>歌词</span>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <section class="content-area">
+                <!-- Discover Section -->
+                <div id="discover" class="content-section active">
+                    <div class="section-header">
+                        <h2>热门歌曲</h2>
+                        <button id="randomPlayBtn" class="btn-primary">
+                            <i class="fas fa-shuffle"></i> 随机播放
+                        </button>
+                    </div>
+                    <div id="songGrid" class="song-grid">
+                        <!-- Songs will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Playlist Section -->
+                <div id="playlist" class="content-section">
+                    <div class="section-header">
+                        <h2>播放列表</h2>
+                        <button id="clearPlaylistBtn" class="btn-secondary">
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                    </div>
+                    <div id="playlistContainer" class="playlist-container">
+                        <!-- Playlist items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Lyrics Section -->
+                <div id="lyrics" class="content-section">
+                    <div class="section-header">
+                        <h2>歌词</h2>
+                    </div>
+                    <div id="lyricsContainer" class="lyrics-container">
+                        <div class="no-lyrics">
+                            <i class="fas fa-music"></i>
+                            <p>暂无歌词</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Music Player -->
+        <div class="player-container">
+            <!-- Current Song Info -->
+            <div class="current-song">
+                <div class="song-cover">
+                    <img id="currentCover" src="https://via.placeholder.com/60x60/1a1a1a/ffffff?text=♪" alt="歌曲封面">
+                </div>
+                <div class="song-info">
+                    <div id="currentTitle" class="song-title">选择一首歌曲</div>
+                    <div id="currentArtist" class="song-artist">开始您的音乐之旅</div>
+                </div>
+                <button id="favoriteBtn" class="favorite-btn">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="player-controls">
+                <div class="control-buttons">
+                    <button id="prevBtn" class="control-btn">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="playBtn" class="control-btn play-btn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="nextBtn" class="control-btn">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button id="shuffleBtn" class="control-btn">
+                        <i class="fas fa-shuffle"></i>
+                    </button>
+                    <button id="repeatBtn" class="control-btn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container">
+                    <span id="currentTime" class="time">0:00</span>
+                    <div class="progress-bar">
+                        <div id="progressBarFill" class="progress-fill"></div>
+                        <div id="progressBarHandle" class="progress-handle"></div>
+                    </div>
+                    <span id="totalTime" class="time">0:00</span>
+                </div>
+            </div>
+
+            <!-- Volume Controls -->
+            <div class="volume-container">
+                <button id="muteBtn" class="volume-btn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div class="volume-slider">
+                    <input type="range" id="volumeSlider" min="0" max="100" value="70">
+                </div>
+                <button id="playlistToggle" class="volume-btn">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
         </div>
-        <ul id="resultsList">
-        </ul>
-        <div class="player">
-            <p id="nowPlaying">请先选择一首歌曲</p>
-            <audio id="audioPlayer" controls></audio>
+
+        <!-- Search Results Modal -->
+        <div id="searchModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>搜索结果</h3>
+                    <button id="closeSearchModal" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="searchResults" class="search-results">
+                    <!-- Search results will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <p>加载中...</p>
+            </div>
         </div>
     </div>
+
+    <!-- Audio Element -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+
     <script src="script.js"></script>
 </body>
 </html>
