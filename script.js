@@ -1,4 +1,4 @@
-﻿// --- 重大改动 ---
+// --- 重大改动 ---
 // 请将下面的网址替换成您自己部署好的酷狗API的Vercel网址！
 const API_BASE_URL = 'https://www.nhyx.zone.id'; // <--- ！！！请务必修改这里 ！！！
 
@@ -24,6 +24,7 @@ searchButton.addEventListener('click', () => {
     fetch(`${API_BASE_URL}/search?keyword=${keyword}`)
         .then(response => response.json())
         .then(data => {
+            console.log('服务器返回的原始数据:', data); // 添加调试信息
             resultsList.innerHTML = ''; // 清空列表
 
             // --- 重大改动 ---
