@@ -1,6 +1,6 @@
 ﻿// --- 最终更新 ---
 // 请将下面的网址替换成您自己部署好的、专属的网易云API的Vercel网址！
-const API_BASE_URL = 'https://nhyx.zone.id'; // <--- ！！！请务必修改这里 ！！！
+const API_BASE_URL = 'https://www.nhyx.zone.id'; // <--- ！！！请务必修改这里 ！！！
 
 // 我们在网上随便找一个看起来真实的IP地址
 const REAL_IP = '116.25.146.177';
