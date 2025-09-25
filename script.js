@@ -19,10 +19,24 @@ class MusicPlayer {
         this.itemsPerPage = 20;
         this.totalResults = 0;
         
+        // 无限随机播放相关变量
+        this.isInfiniteRandomMode = false;
+        this.playedSongs = new Set(); // 记录已播放的歌曲ID，避免重复
+        this.randomKeywords = [
+            '周杰伦', '邓紫棋', '陈奕迅', '林俊杰', '张学友', '王菲', '刘德华', '李荣浩',
+            '薛之谦', '毛不易', '华晨宇', '张碧晨', '汪苏泷', '胡彦斌', '许嵩', '汪峰',
+            '田馥甄', '蔡依林', '梁静茹', '孙燕姿', '张韶涵', '容祖儿', '莫文蔚', '那英',
+            '五月天', 'Beyond', '羽泉', '凤凰传奇', 'SHE', 'F4', '飞儿乐团', '信乐团',
+            '流行', '摇滚', '民谣', '电子', '爵士', '古风', '说唱', '轻音乐'
+        ];
+        this.currentKeywordIndex = 0;
+        
         this.initializeElements();
         this.bindEvents();
-        this.loadHotSongs();
         this.setupAudioEvents();
+        
+        // 显示简洁的欢迎界面
+        this.displayWelcomeContent();
     }
 
     initializeElements() {
@@ -202,15 +216,37 @@ class MusicPlayer {
         }
     }
 
-    displayDefaultContent() {
+    displayWelcomeContent() {
         this.songGrid.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: rgba(255, 255, 255, 0.7);">
-                <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                <h3>欢迎使用音乐播放器</h3>
-                <p style="margin: 1rem 0;">请使用搜索功能查找您喜欢的音乐</p>
-                <p style="font-size: 0.9rem; opacity: 0.8;">由于网络或API限制，暂时无法加载推荐歌曲</p>
+                <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; animation: pulse 2s infinite;"></i>
+                <h3>🎵 欢迎使用奈何音乐</h3>
+                <p style="margin: 1rem 0; font-size: 1.1rem;">点击下方"随机播放"开始您的音乐之旅</p>
+                <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 2rem;">
+                    ✨ 无限随机播放：永不重复，发现更多好音乐
+                </p>
+                <p style="font-size: 0.9rem; opacity: 0.6; margin-top: 1rem;">
+                    或使用上方搜索框查找特定歌曲
+                </p>
             </div>
         `;
+        
+        // 添加动画效果
+        if (!document.getElementById('welcome-styles')) {
+            const style = document.createElement('style');
+            style.id = 'welcome-styles';
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.5; transform: scale(1); }
+                    50% { opacity: 0.8; transform: scale(1.05); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    displayDefaultContent() {
+        this.displayWelcomeContent();
     }
 
     displaySongs(songs) {
@@ -543,6 +579,9 @@ class MusicPlayer {
         if (!this.currentSong) {
             if (this.playlist.length > 0) {
                 this.playSong(this.playlist[0].id);
+            } else {
+                // 如果没有播放列表，启动无限随机播放
+                this.playRandomSongs();
             }
             return;
         }
@@ -555,6 +594,12 @@ class MusicPlayer {
     }
 
     previousSong() {
+        if (this.isInfiniteRandomMode) {
+            // 无限随机模式：播放另一首随机歌曲
+            this.playNextRandomSong();
+            return;
+        }
+        
         if (this.playlist.length === 0) return;
         
         if (this.isShuffled) {
@@ -567,6 +612,12 @@ class MusicPlayer {
     }
 
     nextSong() {
+        if (this.isInfiniteRandomMode) {
+            // 无限随机模式：播放下一首随机歌曲
+            this.playNextRandomSong();
+            return;
+        }
+        
         if (this.playlist.length === 0) return;
         
         if (this.isShuffled) {
@@ -582,20 +633,36 @@ class MusicPlayer {
         if (this.isRepeating) {
             this.audio.currentTime = 0;
             this.audio.play();
+        } else if (this.isInfiniteRandomMode) {
+            // 无限随机模式：播放下一首随机歌曲
+            this.playNextRandomSong();
         } else {
             this.nextSong();
         }
     }
 
     toggleShuffle() {
-        this.isShuffled = !this.isShuffled;
-        this.shuffleBtn.classList.toggle('active', this.isShuffled);
-        
-        if (this.isShuffled) {
-            this.showNotification('已开启随机播放');
+        if (this.isInfiniteRandomMode) {
+            // 如果正在无限随机播放，则停止
+            this.stopInfiniteRandom();
         } else {
-            this.showNotification('已关闭随机播放');
+            // 普通随机播放切换
+            this.isShuffled = !this.isShuffled;
+            this.shuffleBtn.classList.toggle('active', this.isShuffled);
+            
+            if (this.isShuffled) {
+                this.showNotification('已开启随机播放');
+            } else {
+                this.showNotification('已关闭随机播放');
+            }
         }
+    }
+
+    stopInfiniteRandom() {
+        this.isInfiniteRandomMode = false;
+        this.isShuffled = false;
+        this.shuffleBtn.classList.remove('active');
+        this.showNotification('已停止无限随机播放');
     }
 
     toggleRepeat() {
@@ -609,17 +676,94 @@ class MusicPlayer {
         }
     }
 
-    playRandomSongs() {
-        if (this.playlist.length === 0) {
-            this.showError('播放列表为空');
-            return;
-        }
-        
+    async playRandomSongs() {
+        this.isInfiniteRandomMode = true;
         this.isShuffled = true;
         this.shuffleBtn.classList.add('active');
-        this.currentIndex = Math.floor(Math.random() * this.playlist.length);
-        this.playSong(this.playlist[this.currentIndex].id);
-        this.showNotification('开始随机播放');
+        
+        // 清空播放列表，因为我们要无限随机播放
+        this.playlist = [];
+        this.currentIndex = 0;
+        
+        this.showNotification('🎵 开始无限随机播放');
+        
+        // 开始播放第一首随机歌曲
+        await this.playNextRandomSong();
+    }
+
+    async playNextRandomSong() {
+        try {
+            this.showLoading(true);
+            
+            // 获取随机歌曲
+            const randomSong = await this.getRandomSong();
+            if (randomSong) {
+                await this.playSong(randomSong.id);
+                // 将歌曲添加到已播放列表
+                this.playedSongs.add(randomSong.id);
+                
+                // 如果已播放歌曲太多，清理一些旧的记录（保留最近1000首）
+                if (this.playedSongs.size > 1000) {
+                    const songsArray = Array.from(this.playedSongs);
+                    this.playedSongs = new Set(songsArray.slice(-800)); // 保留最近800首
+                }
+            } else {
+                this.showError('暂时无法获取随机歌曲，请稍后重试');
+                this.isInfiniteRandomMode = false;
+            }
+        } catch (error) {
+            console.error('播放随机歌曲失败:', error);
+            this.showError('播放失败，正在尝试下一首');
+            // 继续尝试下一首
+            if (this.isInfiniteRandomMode) {
+                setTimeout(() => this.playNextRandomSong(), 2000);
+            }
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    async getRandomSong() {
+        const maxAttempts = 10; // 最多尝试10次找到未播放的歌曲
+        
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                // 随机选择关键词
+                const randomKeyword = this.randomKeywords[Math.floor(Math.random() * this.randomKeywords.length)];
+                
+                // 随机选择偏移量，获取不同位置的歌曲
+                const randomOffset = Math.floor(Math.random() * 100);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch(`${this.apiBase}/search?keywords=${encodeURIComponent(randomKeyword)}&limit=20&offset=${randomOffset}`, {
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) continue;
+                
+                const data = await response.json();
+                
+                if (data.result && data.result.songs && data.result.songs.length > 0) {
+                    // 过滤掉已播放的歌曲
+                    const unplayedSongs = data.result.songs.filter(song => !this.playedSongs.has(song.id));
+                    
+                    if (unplayedSongs.length > 0) {
+                        // 随机选择一首未播放的歌曲
+                        const randomSong = unplayedSongs[Math.floor(Math.random() * unplayedSongs.length)];
+                        return randomSong;
+                    }
+                }
+            } catch (error) {
+                console.warn(`获取随机歌曲失败 (尝试 ${attempt + 1}):`, error.message);
+                continue;
+            }
+        }
+        
+        return null; // 如果所有尝试都失败了
     }
 
     addToPlaylist(song) {
