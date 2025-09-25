@@ -13,6 +13,12 @@ class MusicPlayer {
         this.lyrics = [];
         this.currentLyricIndex = 0;
         
+        // 搜索翻页相关变量
+        this.currentSearchQuery = '';
+        this.currentPage = 1;
+        this.itemsPerPage = 20;
+        this.totalResults = 0;
+        
         this.initializeElements();
         this.bindEvents();
         this.loadHotSongs();
@@ -33,6 +39,12 @@ class MusicPlayer {
         this.searchModal = document.getElementById('searchModal');
         this.searchResults = document.getElementById('searchResults');
         this.closeSearchModal = document.getElementById('closeSearchModal');
+        
+        // 翻页相关元素
+        this.paginationContainer = document.getElementById('paginationContainer');
+        this.prevPageBtn = document.getElementById('prevPageBtn');
+        this.nextPageBtn = document.getElementById('nextPageBtn');
+        this.pageInfo = document.getElementById('pageInfo');
         
         // 播放器控制
         this.playBtn = document.getElementById('playBtn');
@@ -84,6 +96,10 @@ class MusicPlayer {
             if (e.key === 'Enter') this.performSearch();
         });
         this.closeSearchModal.addEventListener('click', () => this.closeModal());
+        
+        // 翻页事件
+        this.prevPageBtn.addEventListener('click', () => this.goToPreviousPage());
+        this.nextPageBtn.addEventListener('click', () => this.goToNextPage());
 
         // 播放器控制事件
         this.playBtn.addEventListener('click', () => this.togglePlay());
@@ -234,9 +250,17 @@ class MusicPlayer {
         return card;
     }
 
-    async performSearch() {
+    async performSearch(page = 1) {
         const query = this.searchInput.value.trim();
         if (!query) return;
+
+        // 如果是新的搜索查询，重置页码
+        if (query !== this.currentSearchQuery) {
+            this.currentPage = 1;
+            this.currentSearchQuery = query;
+        } else {
+            this.currentPage = page;
+        }
 
         try {
             this.showLoading(true);
@@ -244,7 +268,8 @@ class MusicPlayer {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
             
-            const response = await fetch(`${this.apiBase}/search?keywords=${encodeURIComponent(query)}&limit=20`, {
+            const offset = (this.currentPage - 1) * this.itemsPerPage;
+            const response = await fetch(`${this.apiBase}/search?keywords=${encodeURIComponent(query)}&limit=${this.itemsPerPage}&offset=${offset}`, {
                 signal: controller.signal,
                 mode: 'cors'
             });
@@ -257,10 +282,13 @@ class MusicPlayer {
             const data = await response.json();
             
             if (data.result && data.result.songs && data.result.songs.length > 0) {
+                this.totalResults = data.result.songCount || 0;
                 this.displaySearchResults(data.result.songs);
+                this.updatePagination();
                 this.showModal();
             } else {
                 this.showError('未找到相关歌曲，请尝试其他关键词');
+                this.hidePagination();
             }
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -269,6 +297,7 @@ class MusicPlayer {
                 console.warn('搜索失败:', error.message);
                 this.showError('搜索失败，请稍后重试');
             }
+            this.hidePagination();
         } finally {
             this.showLoading(false);
         }
@@ -331,6 +360,38 @@ class MusicPlayer {
             
             this.searchResults.appendChild(item);
         });
+    }
+
+    // 翻页相关方法
+    updatePagination() {
+        const totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
+        
+        // 显示翻页容器
+        this.paginationContainer.style.display = 'flex';
+        
+        // 更新页面信息
+        this.pageInfo.textContent = `第 ${this.currentPage} 页 / 共 ${totalPages} 页`;
+        
+        // 更新按钮状态
+        this.prevPageBtn.disabled = this.currentPage <= 1;
+        this.nextPageBtn.disabled = this.currentPage >= totalPages;
+    }
+
+    hidePagination() {
+        this.paginationContainer.style.display = 'none';
+    }
+
+    async goToPreviousPage() {
+        if (this.currentPage > 1) {
+            await this.performSearch(this.currentPage - 1);
+        }
+    }
+
+    async goToNextPage() {
+        const totalPages = Math.ceil(this.totalResults / this.itemsPerPage);
+        if (this.currentPage < totalPages) {
+            await this.performSearch(this.currentPage + 1);
+        }
     }
 
     async playSong(songId) {
@@ -802,6 +863,7 @@ class MusicPlayer {
 
     closeModal() {
         this.searchModal.classList.remove('active');
+        this.hidePagination();
     }
 
     showLoading(show) {
