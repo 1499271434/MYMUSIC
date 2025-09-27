@@ -20,6 +20,12 @@
                     <input type="text" id="searchInput" placeholder="搜索歌曲、歌手...">
                     <button id="searchBtn"><i class="fas fa-search"></i></button>
                 </div>
+                <div class="user-controls">
+                    <button id="loginBtn" class="login-btn">
+                        <i class="fas fa-user"></i>
+                        <span id="loginText">登录</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -39,6 +45,10 @@
                     <div class="nav-item" data-section="lyrics">
                         <i class="fas fa-quote-left"></i>
                         <span>歌词</span>
+                    </div>
+                    <div class="nav-item" data-section="favorites">
+                        <i class="fas fa-heart"></i>
+                        <span>我的收藏</span>
                     </div>
                 </nav>
             </aside>
@@ -80,6 +90,24 @@
                         <div class="no-lyrics">
                             <i class="fas fa-music"></i>
                             <p>暂无歌词</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Favorites Section -->
+                <div id="favorites" class="content-section">
+                    <div class="section-header">
+                        <h2>我的收藏</h2>
+                        <div class="favorites-actions">
+                            <button id="clearFavoritesBtn" class="btn-secondary" style="display: none;">
+                                <i class="fas fa-trash"></i> 清空收藏
+                            </button>
+                        </div>
+                    </div>
+                    <div id="favoritesContainer" class="favorites-container">
+                        <div class="no-favorites">
+                            <i class="fas fa-heart"></i>
+                            <p id="favoritesMessage">请先登录以查看收藏的歌曲</p>
                         </div>
                     </div>
                 </div>
@@ -171,6 +199,39 @@
             </div>
         </div>
 
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal">
+            <div class="modal-content login-modal-content">
+                <div class="modal-header">
+                    <h3>用户登录</h3>
+                    <button id="closeLoginModal" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="usernameInput">用户名</label>
+                        <input type="text" id="usernameInput" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="passwordInput">密码</label>
+                        <input type="password" id="passwordInput" placeholder="请输入密码">
+                    </div>
+                    <div class="form-actions">
+                        <button id="loginSubmitBtn" class="btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> 登录
+                        </button>
+                        <button id="registerBtn" class="btn-secondary">
+                            <i class="fas fa-user-plus"></i> 注册
+                        </button>
+                    </div>
+                    <div class="login-info">
+                        <p><i class="fas fa-info-circle"></i> 登录后可以收藏喜欢的歌曲</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading Overlay -->
         <div id="loadingOverlay" class="loading-overlay">
             <div class="loading-spinner">
@@ -183,6 +244,7 @@
     <!-- Audio Element -->
     <audio id="audioPlayer" preload="metadata"></audio>
 
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

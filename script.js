@@ -571,6 +571,14 @@ class MusicPlayer {
         this.currentTitle.textContent = this.currentSong.name;
         this.currentArtist.textContent = this.currentSong.artists?.map(a => a.name).join(', ') || '未知歌手';
         
+        // 更新收藏按钮状态
+        if (userManager && userManager.isLoggedIn) {
+            const isFavorited = userManager.isFavorited(this.currentSong.id);
+            this.favoriteBtn.classList.toggle('active', isFavorited);
+        } else {
+            this.favoriteBtn.classList.remove('active');
+        }
+        
         // 更新文档标题
         document.title = `${this.currentSong.name} - ${this.currentArtist.textContent} | 音乐播放器`;
     }
@@ -956,13 +964,30 @@ class MusicPlayer {
         }
     }
 
-    toggleFavorite() {
-        this.favoriteBtn.classList.toggle('active');
+    async toggleFavorite() {
+        if (!this.currentSong) {
+            this.showNotification('请先选择一首歌曲', 'error');
+            return;
+        }
         
-        if (this.favoriteBtn.classList.contains('active')) {
-            this.showNotification('已添加到收藏');
+        // 检查用户是否登录
+        if (!userManager || !userManager.isLoggedIn) {
+            this.showNotification('请先登录以收藏歌曲', 'error');
+            return;
+        }
+        
+        const isFavorited = userManager.isFavorited(this.currentSong.id);
+        
+        if (isFavorited) {
+            // 取消收藏
+            await userManager.removeFromFavorites(this.currentSong.id);
+            this.favoriteBtn.classList.remove('active');
         } else {
-            this.showNotification('已从收藏移除');
+            // 添加到收藏
+            const success = await userManager.addToFavorites(this.currentSong);
+            if (success) {
+                this.favoriteBtn.classList.add('active');
+            }
         }
     }
 
@@ -998,6 +1023,8 @@ class MusicPlayer {
             this.updatePlaylistDisplay();
         } else if (section === 'lyrics' && this.currentSong) {
             this.displayLyrics();
+        } else if (section === 'favorites' && userManager) {
+            userManager.updateFavoritesDisplay();
         }
     }
 
