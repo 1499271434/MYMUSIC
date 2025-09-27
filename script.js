@@ -1008,6 +1008,8 @@ class MusicPlayer {
     }
 
     switchSection(section) {
+        console.log('Switching to section:', section); // 调试信息
+        
         // 更新导航
         this.navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.section === section);
@@ -1021,8 +1023,13 @@ class MusicPlayer {
         // 加载特定区域的内容
         if (section === 'playlist') {
             this.updatePlaylistDisplay();
-        } else if (section === 'lyrics' && this.currentSong) {
-            this.displayLyrics();
+        } else if (section === 'lyrics') {
+            // 移除对currentSong的依赖，始终显示歌词界面
+            if (this.currentSong) {
+                this.displayLyrics();
+            } else {
+                this.displayNoLyrics();
+            }
         } else if (section === 'favorites' && userManager) {
             userManager.updateFavoritesDisplay();
         }
@@ -1150,4 +1157,136 @@ window.addEventListener('popstate', () => {
     if (window.musicPlayer && window.musicPlayer.searchModal.classList.contains('active')) {
         window.musicPlayer.closeModal();
     }
+});
+
+// 移动端优化功能
+class MobileOptimizer {
+    constructor() {
+        this.initMobileFeatures();
+    }
+
+    initMobileFeatures() {
+        // 检测是否为移动设备
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (this.isMobile) {
+            this.setupTouchGestures();
+            this.preventScrollBounce();
+            this.optimizeViewport();
+        }
+    }
+
+    setupTouchGestures() {
+        let startX = 0;
+        let startY = 0;
+        let isVerticalScroll = false;
+
+        // 在播放器区域添加滑动手势
+        const playerContainer = document.querySelector('.player-container');
+        if (playerContainer) {
+            playerContainer.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isVerticalScroll = false;
+            }, { passive: true });
+
+            playerContainer.addEventListener('touchmove', (e) => {
+                if (!startX || !startY) return;
+
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
+                const diffX = Math.abs(currentX - startX);
+                const diffY = Math.abs(currentY - startY);
+
+                // 判断是否为垂直滚动
+                if (diffY > diffX && diffY > 10) {
+                    isVerticalScroll = true;
+                }
+            }, { passive: true });
+
+            playerContainer.addEventListener('touchend', (e) => {
+                if (!startX || !startY || isVerticalScroll) {
+                    startX = 0;
+                    startY = 0;
+                    return;
+                }
+
+                const endX = e.changedTouches[0].clientX;
+                const diffX = startX - endX;
+
+                // 滑动阈值
+                const threshold = 50;
+
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX > 0) {
+                        // 向左滑动 - 下一首
+                        if (window.musicPlayer) {
+                            window.musicPlayer.nextSong();
+                        }
+                    } else {
+                        // 向右滑动 - 上一首
+                        if (window.musicPlayer) {
+                            window.musicPlayer.prevSong();
+                        }
+                    }
+                }
+
+                startX = 0;
+                startY = 0;
+            }, { passive: true });
+        }
+    }
+
+    preventScrollBounce() {
+        // 防止iOS Safari的弹性滚动影响播放器
+        document.body.addEventListener('touchmove', (e) => {
+            // 如果触摸目标是播放器容器，阻止默认滚动
+            if (e.target.closest('.player-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    }
+
+    optimizeViewport() {
+        // 监听屏幕方向变化
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                // 重新计算播放器位置
+                this.adjustPlayerPosition();
+            }, 100);
+        });
+
+        // 监听虚拟键盘显示/隐藏
+        window.addEventListener('resize', () => {
+            this.handleVirtualKeyboard();
+        });
+    }
+
+    adjustPlayerPosition() {
+        const playerContainer = document.querySelector('.player-container');
+        if (playerContainer && this.isMobile) {
+            // 确保播放器始终在可视区域内
+            playerContainer.style.bottom = '0';
+        }
+    }
+
+    handleVirtualKeyboard() {
+        const playerContainer = document.querySelector('.player-container');
+        if (playerContainer && this.isMobile) {
+            const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const windowHeight = window.innerHeight;
+            
+            // 如果视口高度明显小于窗口高度，说明虚拟键盘显示了
+            if (viewportHeight < windowHeight * 0.75) {
+                playerContainer.style.display = 'none';
+            } else {
+                playerContainer.style.display = 'grid';
+            }
+        }
+    }
+}
+
+// 初始化移动端优化
+document.addEventListener('DOMContentLoaded', () => {
+    new MobileOptimizer();
 });
